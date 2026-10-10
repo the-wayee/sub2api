@@ -185,3 +185,24 @@ func TestUpdateServiceRollbackToVersionAcceptsVPrefix(t *testing.T) {
 	require.NotErrorIs(t, err, ErrRollbackVersionNotAllowed)
 	require.Contains(t, err.Error(), "no compatible release found")
 }
+
+func TestCustomBuildChecksDoNotOfferUpstreamReplacement(t *testing.T) {
+	cache := &updateServiceCacheStub{}
+	svc := NewUpdateService(cache, &updateServiceGitHubClientStub{
+		release: &GitHubRelease{TagName: "v0.2.16", Name: "v0.2.16"},
+	}, "opentv-73480acd737c", "release")
+	for _, force := range []bool{true, false} {
+		info, err := svc.CheckUpdate(context.Background(), force)
+		require.NoError(t, err)
+		require.False(t, info.HasUpdate)
+		require.Equal(t, "custom", info.BuildType)
+		require.Equal(t, "0.2.16", info.LatestVersion)
+		require.Equal(t, !force, info.Cached)
+	}
+	require.ErrorIs(t, svc.PerformUpdate(context.Background()), ErrCustomBuildUpdate)
+	require.ErrorIs(t, svc.RollbackToVersion(context.Background(), "0.2.14"), ErrCustomBuildUpdate)
+	require.ErrorIs(t, svc.Rollback(), ErrCustomBuildUpdate)
+	versions, err := svc.ListRollbackVersions(context.Background())
+	require.NoError(t, err)
+	require.Empty(t, versions)
+}

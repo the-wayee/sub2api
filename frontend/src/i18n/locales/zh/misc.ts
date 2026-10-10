@@ -19,6 +19,11 @@ export default {
 
   // Version Badge
   version: {
+    customBuild: '自定义镜像版本',
+    customBuildHint: '此版本通过 fork 镜像部署。更新时请先合并上游代码、验证并构建新镜像，再替换部署；回滚请使用备份镜像。',
+    upstreamVersion: '上游最新发布',
+    imageDeployment: '查看镜像构建流程',
+
     currentVersion: '当前版本',
     latestVersion: '最新版本',
     upToDate: '已是最新版本',

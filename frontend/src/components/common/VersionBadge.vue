@@ -10,7 +10,7 @@
             ? 'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50'
             : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-dark-800 dark:text-dark-400 dark:hover:bg-dark-700'
         ]"
-        :title="hasUpdate ? t('version.updateAvailable') : t('version.upToDate')"
+        :title="isCustomBuild ? t('version.customBuild') : hasUpdate ? t('version.updateAvailable') : t('version.upToDate')"
       >
         <span v-if="currentVersion" class="font-medium">v{{ currentVersion }}</span>
         <span
@@ -89,7 +89,7 @@
                   <span v-else class="text-2xl font-bold text-gray-400 dark:text-dark-500">--</span>
                   <!-- Show check mark when up to date -->
                   <span
-                    v-if="!hasUpdate"
+                    v-if="!hasUpdate && !isCustomBuild"
                     class="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30"
                   >
                     <svg
@@ -107,7 +107,9 @@
                 </div>
                 <p class="mt-1 text-xs text-gray-500 dark:text-dark-400">
                   {{
-                    hasUpdate
+                    isCustomBuild
+                      ? t('version.customBuild')
+                      : hasUpdate
                       ? t('version.latestVersion') + ': v' + latestVersion
                       : t('version.upToDate')
                   }}
@@ -115,7 +117,27 @@
               </div>
 
               <!-- Priority 1: Update error (must check before hasUpdate) -->
-              <div v-if="updateError" class="space-y-2">
+              <div v-if="isCustomBuild" class="space-y-3" data-testid="custom-build-update">
+                <p class="rounded-lg bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                  {{ t('version.customBuildHint') }}
+                </p>
+                <p v-if="releaseInfo && latestVersion" class="text-xs text-gray-500 dark:text-dark-400">
+                  {{ t('version.upstreamVersion') }}: v{{ latestVersion }}
+                </p>
+                <a href="https://github.com/the-wayee/sub2api/actions/workflows/opentv-image.yml"
+                  target="_blank" rel="noopener noreferrer"
+                  class="flex items-center justify-center gap-1 rounded-lg bg-primary-500 px-4 py-2 text-sm font-medium text-white hover:bg-primary-600">
+                  {{ t('version.imageDeployment') }}
+                  <Icon name="externalLink" size="xs" :stroke-width="2" />
+                </a>
+                <a v-if="releaseInfo?.html_url && releaseInfo.html_url !== '#'"
+                  :href="releaseInfo.html_url" target="_blank" rel="noopener noreferrer"
+                  class="flex items-center justify-center gap-1 text-xs text-gray-500 dark:text-dark-400">
+                  {{ t('version.viewChangelog') }}
+                  <Icon name="externalLink" size="xs" :stroke-width="2" />
+                </a>
+              </div>
+              <div v-else-if="updateError" class="space-y-2">
                 <div
                   class="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-800/50 dark:bg-red-900/20"
                 >
@@ -673,7 +695,10 @@ const dropdownRef = ref<HTMLElement | null>(null)
 const loading = computed(() => appStore.versionLoading)
 const currentVersion = computed(() => appStore.currentVersion || props.version || '')
 const latestVersion = computed(() => appStore.latestVersion)
-const hasUpdate = computed(() => appStore.hasUpdate)
+const isCustomBuild = computed(() =>
+  appStore.buildType === 'custom' || /^v?opentv-/.test(currentVersion.value)
+)
+const hasUpdate = computed(() => !isCustomBuild.value && appStore.hasUpdate)
 const releaseInfo = computed(() => appStore.releaseInfo)
 const buildType = computed(() => appStore.buildType)
 
@@ -729,7 +754,7 @@ const activeManualCommand = computed(() =>
 )
 
 // Only show update check for release builds (binary/docker deployment)
-const isReleaseBuild = computed(() => buildType.value === 'release')
+const isReleaseBuild = computed(() => !isCustomBuild.value && buildType.value === 'release')
 
 function toggleDropdown() {
   dropdownOpen.value = !dropdownOpen.value
@@ -752,7 +777,7 @@ async function refreshVersion(force = true) {
 }
 
 async function handleUpdate() {
-  if (updating.value) return
+  if (updating.value || isCustomBuild.value) return
 
   updating.value = true
   updateError.value = ''

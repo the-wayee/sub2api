@@ -19,6 +19,11 @@ export default {
 
   // Version Badge
   version: {
+    customBuild: 'Custom image build',
+    customBuildHint: 'This build is deployed from a fork image. Merge upstream changes, verify and build a new image, then deploy it. Use a backup image to roll back.',
+    upstreamVersion: 'Latest upstream release',
+    imageDeployment: 'View image build workflow',
+
     currentVersion: 'Current Version',
     latestVersion: 'Latest Version',
     upToDate: "You're running the latest version.",
