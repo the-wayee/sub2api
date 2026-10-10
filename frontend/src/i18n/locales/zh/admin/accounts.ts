@@ -819,6 +819,7 @@ export default {
           '统一控制 Codex /responses 文本请求的 hosted image_generation 桥接和客户端图片工具声明。hosted 工具自动注入仅适用于非 Responses Lite 请求；账号级策略优先于渠道和全局配置，不影响独立图片生成接口。',
         codexImageToolInherit: '跟随渠道',
         codexImageToolInheritDesc: '不写入账号覆盖；非 Lite 请求是否注入 hosted 工具由渠道或全局策略决定，客户端显式携带的 hosted 工具和本地 image_gen 声明照常放行。',
+        codexImageToolPassthroughWarning: '当前账号开启了请求透传，Hosted 生图桥接不会自动注入工具。要使用桥接，请关闭请求透传并保存。',
         codexImageToolEnabled: '启用 Hosted 桥接',
         codexImageToolEnabledDesc: '仅为非 Responses Lite 请求注入 hosted image_generation 工具；客户端显式携带的图片工具仍会放行。',
         codexImageToolDisabled: '不注入 Hosted 工具',

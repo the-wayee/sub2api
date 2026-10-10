@@ -1514,6 +1514,18 @@ describe('EditAccountModal', () => {
     expect(updateAccountMock.mock.calls[0]?.[1]?.extra?.openai_responses_supported).toBe(true)
   })
 
+  it('explains why passthrough prevents hosted image injection', async () => {
+    const account = buildAccount()
+    account.extra = { openai_passthrough: true, codex_image_generation_bridge: true }
+    const wrapper = mountModal(account)
+    expect(wrapper.get('[data-testid="codex-image-passthrough-warning"]').text()).toContain(
+      'admin.accounts.openai.codexImageToolPassthroughWarning'
+    )
+    await wrapper.get('button[data-testid="codex-image-tool-disabled"]').trigger('click')
+    expect(wrapper.find('[data-testid="codex-image-passthrough-warning"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
   it('submits Codex image tool force-inject mode as bridge override', async () => {
     const account = buildAccount()
     account.extra = {

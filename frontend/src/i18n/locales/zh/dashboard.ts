@@ -248,6 +248,15 @@ export default {
         configTomlHint: '保存 config.toml 后重启 Codex，客户端会加载远程目录。使用本地文件模式时，还需下载目录并保存到配置中的路径。',
         note: '启动 Codex 前先导出 SUB2API_API_KEY。下载的目录只包含模型元数据，不包含 API Key。'
       },
+      ccSwitch: {
+        title: '完成 CC Switch 的 Codex 配置',
+        description: '导入链接只创建基础供应商。请继续粘贴下面的完整配置，以加载此 API Key 的模型目录。',
+        importStep: '点击“打开 CC Switch 导入”，在 CC Switch 中确认导入供应商。',
+        configStep: '点击“复制完整配置”，在 CC Switch → Codex → 编辑刚导入的供应商，将其配置（config.toml）内容替换为复制的内容并保存。',
+        restartStep: '启用该供应商，退出旧 Codex 会话后重新启动。选择本地文件目录时，还需下载目录并保存到下方指定路径。生图还需要管理员为分组和上游账号启用相关能力。',
+        launch: '打开 CC Switch 导入',
+        copyConfig: '复制完整配置'
+      },
       codexModelCatalog: {
         mode: '目录来源',
         remote: '远程目录（Codex 0.156.0+）',

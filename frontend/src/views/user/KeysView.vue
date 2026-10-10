@@ -1073,10 +1073,12 @@
     <UseKeyModal
       :show="showUseKeyModal"
       :api-key="selectedKey?.key || ''"
-      :base-url="publicSettings?.api_base_url || ''"
+      :base-url="publicSettings?.api_base_url || fallbackApiBaseUrl"
       :platform="selectedKey?.group?.platform || null"
       :claude-code-only="selectedKey?.group?.claude_code_only || false"
       :allow-messages-dispatch="selectedKey?.group?.allow_messages_dispatch || false"
+      :cc-switch-import="showCcSwitchGuide"
+      @import-cc-switch="selectedKey && executeCcsImport(selectedKey, 'claude')"
       @close="closeUseKeyModal"
     />
 
@@ -1402,6 +1404,8 @@ const showDeleteDialog = ref(false)
 const showResetQuotaDialog = ref(false)
 const showResetRateLimitDialog = ref(false)
 const showUseKeyModal = ref(false)
+const fallbackApiBaseUrl = window.location.origin
+const showCcSwitchGuide = ref(false)
 const showCcsClientSelect = ref(false)
 const showColumnDropdown = ref(false)
 const pendingCcsRow = ref<ApiKey | null>(null)
@@ -1663,12 +1667,14 @@ const loadPublicSettings = async () => {
 }
 
 const openUseKeyModal = (key: ApiKey) => {
+  showCcSwitchGuide.value = false
   selectedKey.value = key
   showUseKeyModal.value = true
 }
 
 const closeUseKeyModal = () => {
   showUseKeyModal.value = false
+  showCcSwitchGuide.value = false
   selectedKey.value = null
 }
 
@@ -2012,6 +2018,13 @@ const resetRateLimitUsage = async () => {
 const importToCcswitch = (row: ApiKey) => {
   const platform = row.group?.platform || 'anthropic'
 
+  if (platform === 'openai') {
+    selectedKey.value = row
+    showCcSwitchGuide.value = true
+    showUseKeyModal.value = true
+    return
+  }
+
   // For antigravity platform, show client selection dialog
   if (platform === 'antigravity') {
     pendingCcsRow.value = row
@@ -2042,6 +2055,7 @@ const executeCcsImport = (row: ApiKey, clientType: CcSwitchClientType) => {
     window.open(deeplink, '_self')
 
     // Check if the protocol handler worked by detecting if we're still focused
+    if (platform === 'openai') return
     setTimeout(() => {
       if (document.hasFocus()) {
         // Still focused means the protocol handler likely failed

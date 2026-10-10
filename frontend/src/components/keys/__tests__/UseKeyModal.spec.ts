@@ -25,6 +25,40 @@ vi.mock('file-saver', () => ({
 
 import UseKeyModal from '../UseKeyModal.vue'
 
+describe('CC Switch Codex setup', () => {
+  it('copies a complete provider config with authentication and the model catalog', async () => {
+    const wrapper = mount(UseKeyModal, {
+      props: {
+        show: true,
+        apiKey: 'sk-cc-switch-test',
+        baseUrl: 'https://example.com',
+        platform: 'openai',
+        ccSwitchImport: true
+      },
+      global: {
+        stubs: {
+          BaseDialog: { template: '<div><slot /><slot name="footer" /></div>' },
+          Icon: { template: '<span />' }
+        }
+      }
+    })
+
+    expect(wrapper.find('[data-testid="cc-switch-codex-guide"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="codex-auth-mode-legacy"]').exists()).toBe(false)
+    await wrapper.get('[data-testid="cc-switch-copy-config"]').trigger('click')
+    const config = copyToClipboardMock.mock.calls.at(-1)?.[0]
+    expect(config).toContain('experimental_bearer_token = "sk-cc-switch-test"')
+    expect(config).toContain('requires_openai_auth = false')
+    expect(config).toContain('model_catalog_url = "https://example.com/v1/models"')
+    expect(config).toContain('api_key_model_discovery = true')
+    expect(config).not.toContain('/Users/')
+
+    await wrapper.get('[data-testid="cc-switch-launch"]').trigger('click')
+    expect(wrapper.emitted('import-cc-switch')).toHaveLength(1)
+    wrapper.unmount()
+  })
+})
+
 function readBlobAsText(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()

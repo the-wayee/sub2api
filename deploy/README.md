@@ -4,6 +4,36 @@ This directory contains files for deploying Sub2API on Linux servers and Apple-s
 
 ## Deployment Methods
 
+### Deploy a fork's image
+
+The manual **Build OpenTV image** GitHub Actions workflow verifies the Codex setup
+UI and publishes `ghcr.io/<owner>/<repository>:sha-<full-commit>` for Linux amd64.
+Run it against the reviewed commit. It does not deploy to a server. For anonymous
+pulls, make the GHCR package public; otherwise authenticate the server to GHCR.
+
+For `docker-compose.local.yml`, set `SUB2API_IMAGE` in the deployment directory's
+`.env` to that exact image tag. Back up PostgreSQL and the existing `.env` and
+Compose files before updating. Keep the old image reference and database backup
+for rollback, including any schema migrations introduced by the new version.
+For an older server Compose file, change only the application's `image` line to
+`${SUB2API_IMAGE:-weishaw/sub2api:latest}` first; retain the server's port bindings,
+data mounts and custom networks.
+
+From the existing deployment directory, run:
+
+```bash
+docker compose -p sub2api pull sub2api
+docker compose -p sub2api up -d --no-deps sub2api
+curl -fsS http://127.0.0.1:8081/health
+```
+
+`pull` downloads only the application image; `up` replaces only the application
+container, retaining its existing data mounts, network and database services.
+The health URL uses the OpenTV deployment's loopback port. Other deployments
+should use their configured port. Verify login, API calls and the CC Switch setup
+UI after the health check. If needed, restore the previous image reference and
+repeat the two Compose commands; assess database compatibility before reverting.
+
 | Method | Best For | Setup Wizard |
 |--------|----------|--------------|
 | **Docker Compose** | Quick setup, all-in-one | Not needed (auto-setup) |

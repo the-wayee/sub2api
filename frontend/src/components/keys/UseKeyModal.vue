@@ -23,13 +23,39 @@
 
       <!-- Platform-specific content -->
       <template v-else>
+        <section
+          v-if="ccSwitchImport && platform === 'openai'"
+          data-testid="cc-switch-codex-guide"
+          class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30"
+        >
+          <h3 class="font-medium text-gray-900 dark:text-white">{{ t('keys.useKeyModal.ccSwitch.title') }}</h3>
+          <p class="mt-2 text-sm text-gray-700 dark:text-gray-300">{{ t('keys.useKeyModal.ccSwitch.description') }}</p>
+          <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-gray-700 dark:text-gray-300">
+            <li>{{ t('keys.useKeyModal.ccSwitch.importStep') }}</li>
+            <li>{{ t('keys.useKeyModal.ccSwitch.configStep') }}</li>
+            <li>{{ t('keys.useKeyModal.ccSwitch.restartStep') }}</li>
+          </ol>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <button type="button" class="btn btn-primary" data-testid="cc-switch-launch" @click="emit('import-cc-switch')">
+              {{ t('keys.useKeyModal.ccSwitch.launch') }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-testid="cc-switch-copy-config"
+              @click="copyContent(currentFiles[0].content, 0)"
+            >
+              {{ copiedIndex === 0 ? t('keys.useKeyModal.copied') : t('keys.useKeyModal.ccSwitch.copyConfig') }}
+            </button>
+          </div>
+        </section>
         <!-- Description -->
         <p class="text-sm text-gray-600 dark:text-gray-400">
           {{ platformDescription }}
         </p>
 
         <!-- Client Tabs -->
-        <div v-if="clientTabs.length" class="overflow-x-auto border-b border-gray-200 dark:border-dark-700">
+        <div v-if="clientTabs.length && !ccSwitchImport" class="overflow-x-auto border-b border-gray-200 dark:border-dark-700">
           <nav class="-mb-px flex min-w-max gap-4 sm:gap-6" aria-label="Client">
             <button
               v-for="tab in clientTabs"
@@ -53,7 +79,7 @@
 
         <!-- Codex Authentication Mode -->
         <div
-          v-if="showCodexAuthMode"
+          v-if="showCodexAuthMode && !ccSwitchImport"
           class="rounded-lg border border-gray-200 p-3 dark:border-dark-700"
         >
           <div class="mb-2">
@@ -289,10 +315,12 @@ interface Props {
   platform: GroupPlatform | null
   claudeCodeOnly?: boolean
   allowMessagesDispatch?: boolean
+  ccSwitchImport?: boolean
 }
 
 interface Emits {
   (e: 'close'): void
+  (e: 'import-cc-switch'): void
 }
 
 interface TabConfig {
@@ -373,15 +401,15 @@ const defaultClientTab = computed(() => {
   }
 })
 
-watch(() => [props.platform, props.claudeCodeOnly], () => {
+watch(() => [props.platform, props.claudeCodeOnly, props.ccSwitchImport], () => {
   activeTab.value = 'unix'
   activeClientTab.value = defaultClientTab.value
-  codexAuthMode.value = 'legacy'
+  codexAuthMode.value = props.ccSwitchImport ? 'api-key' : 'legacy'
 }, { immediate: true })
 
 watch(() => props.show, (show) => {
   if (show) {
-    codexAuthMode.value = 'legacy'
+    codexAuthMode.value = props.ccSwitchImport ? 'api-key' : 'legacy'
   } else {
     resetCodexModelManifest()
   }

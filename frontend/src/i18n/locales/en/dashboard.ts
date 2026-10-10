@@ -244,6 +244,15 @@ export default {
         configTomlHint: 'Save config.toml and restart Codex to load the remote catalog. In local file mode, also download the catalog to the configured path.',
         note: 'Export SUB2API_API_KEY before starting Codex. The downloaded catalog contains model metadata only, not your API key.',
       },
+      ccSwitch: {
+        title: 'Complete Codex setup in CC Switch',
+        description: 'The import link creates a basic provider. Paste the complete configuration below to load the model catalog for this API key.',
+        importStep: 'Click “Open CC Switch import” and confirm the provider import in CC Switch.',
+        configStep: 'Click “Copy complete configuration”. In CC Switch → Codex → Edit the imported provider, replace its config.toml content with the copied configuration and save.',
+        restartStep: 'Activate the provider, exit the old Codex session and restart. For a local catalog, also download it to the path shown below. Image generation requires the administrator to enable support for the group and upstream account.',
+        launch: 'Open CC Switch import',
+        copyConfig: 'Copy complete configuration'
+      },
       codexModelCatalog: {
         mode: 'Catalog source',
         remote: 'Remote catalog (Codex 0.156.0+)',

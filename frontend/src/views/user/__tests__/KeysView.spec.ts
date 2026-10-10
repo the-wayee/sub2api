@@ -297,6 +297,25 @@ describe('user KeysView column settings', () => {
     isCurrentStep.mockReturnValue(false)
   })
 
+  it('shows complete Codex setup before launching an OpenAI CC Switch import', async () => {
+    const key = { ...createApiKey(), group: { id: 3, name: 'Codex', platform: 'openai' } } as ApiKey
+    listKeys.mockResolvedValue({ items: [key], total: 1, page: 1, page_size: 20, pages: 1 })
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    const wrapper = await mountView()
+    await getButtonByText(wrapper, 'keys.importToCcSwitch').trigger('click')
+    const modal = wrapper.findComponent({ name: 'UseKeyModal' })
+    expect(modal.props('show')).toBe(true)
+    expect(modal.props('ccSwitchImport')).toBe(true)
+    expect(modal.props('baseUrl')).toBe(window.location.origin)
+    expect(open).not.toHaveBeenCalled()
+    modal.vm.$emit('import-cc-switch')
+    await nextTick()
+    expect(open).toHaveBeenCalledWith(expect.stringContaining('ccswitch://v1/import?'), '_self')
+    expect(showError).not.toHaveBeenCalled()
+    open.mockRestore()
+    wrapper.unmount()
+  })
+
   it.each([
     { initialStatus: 'quota_exhausted', status: 'active', formStatus: 'active' },
     { initialStatus: 'inactive', status: 'inactive', formStatus: 'inactive' },

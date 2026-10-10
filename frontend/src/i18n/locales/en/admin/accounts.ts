@@ -710,6 +710,7 @@ export default {
           'Controls the hosted image_generation bridge and client-declared image tools on Codex /responses text requests. Hosted auto-injection applies only to non-Responses Lite requests. Account policy takes precedence over channel and global settings; standalone image-generation endpoints are unaffected.',
         codexImageToolInherit: 'Follow channel',
         codexImageToolInheritDesc: 'No account override; hosted injection for non-Lite requests follows the channel or global policy, while client-provided hosted tools and local image_gen declarations pass through.',
+        codexImageToolPassthroughWarning: 'Request passthrough is enabled for this account, so the hosted image bridge will not inject tools. Disable request passthrough and save to use the bridge.',
         codexImageToolEnabled: 'Enable hosted bridge',
         codexImageToolEnabledDesc: 'Inject the hosted image_generation tool only for non-Responses Lite requests; client-provided image tools still pass through.',
         codexImageToolDisabled: 'No hosted injection',

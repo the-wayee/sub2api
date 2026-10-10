@@ -1878,6 +1878,13 @@
               </button>
             </div>
           </div>
+          <p
+            v-if="openaiPassthroughEnabled && codexImageToolMode === 'enabled'"
+            data-testid="codex-image-passthrough-warning"
+            class="border-t border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200"
+          >
+            {{ t('admin.accounts.openai.codexImageToolPassthroughWarning') }}
+          </p>
         </div>
       </div>
 

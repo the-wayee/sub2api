@@ -1,0 +1,54 @@
+name: Build OpenTV image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: opentv-image-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Verify Codex setup
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec vitest run src/components/keys/__tests__/UseKeyModal.spec.ts src/components/account/__tests__/EditAccountModal.spec.ts src/views/user/__tests__/KeysView.spec.ts src/utils/__tests__/ccswitchImport.spec.ts src/i18n/__tests__/localeKeyCompleteness.spec.ts
+          pnpm run build
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish commit image
+        env:
+          REPOSITORY: ${{ github.repository }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          IMAGE="ghcr.io/${REPOSITORY,,}"
+          TAG="sha-${COMMIT}"
+          docker buildx build --platform linux/amd64 --file Dockerfile \
+            --build-arg "VERSION=opentv-${COMMIT:0:12}" \
+            --build-arg "COMMIT=${COMMIT}" \
+            --build-arg "DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --label "org.opencontainers.image.source=https://github.com/${REPOSITORY}" \
+            --label "org.opencontainers.image.revision=${COMMIT}" \
+            --cache-from type=gha --cache-to type=gha,mode=max \
+            --tag "${IMAGE}:${TAG}" --push .
+          echo "Image: ${IMAGE}:${TAG}" >> "$GITHUB_STEP_SUMMARY"
