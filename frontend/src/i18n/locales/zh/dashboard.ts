@@ -255,6 +255,8 @@ export default {
         configStep: '点击“复制完整配置”，在 CC Switch → Codex → 编辑刚导入的供应商，将其配置（config.toml）内容替换为复制的内容并保存。',
         restartStep: '启用该供应商，退出旧 Codex 会话后重新启动。选择本地文件目录时，还需下载目录并保存到下方指定路径。生图还需要管理员为分组和上游账号启用相关能力。',
         launch: '打开 CC Switch 导入',
+        download: '未安装？下载 CC Switch',
+        launchHelp: '如果点击后没有打开，请先下载安装并启动 CC Switch，再回到此页面点击“打开 CC Switch 导入”。浏览器询问是否打开应用时，请允许。',
         copyConfig: '复制完整配置'
       },
       codexModelCatalog: {

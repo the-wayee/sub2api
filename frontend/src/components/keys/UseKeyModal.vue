@@ -48,6 +48,18 @@
               {{ copiedIndex === 0 ? t('keys.useKeyModal.copied') : t('keys.useKeyModal.ccSwitch.copyConfig') }}
             </button>
           </div>
+          <div class="mt-3 text-sm text-gray-600 dark:text-gray-400">
+            <a
+              href="https://github.com/farion1231/cc-switch/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="font-medium text-primary-600 hover:underline dark:text-primary-400"
+              data-testid="cc-switch-download"
+            >
+              {{ t('keys.useKeyModal.ccSwitch.download') }}
+            </a>
+            <p class="mt-1">{{ t('keys.useKeyModal.ccSwitch.launchHelp') }}</p>
+          </div>
         </section>
         <!-- Description -->
         <p class="text-sm text-gray-600 dark:text-gray-400">

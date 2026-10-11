@@ -251,6 +251,8 @@ export default {
         configStep: 'Click “Copy complete configuration”. In CC Switch → Codex → Edit the imported provider, replace its config.toml content with the copied configuration and save.',
         restartStep: 'Activate the provider, exit the old Codex session and restart. For a local catalog, also download it to the path shown below. Image generation requires the administrator to enable support for the group and upstream account.',
         launch: 'Open CC Switch import',
+        download: 'Not installed? Download CC Switch',
+        launchHelp: 'If the app does not open, download, install and launch CC Switch, then return here and click “Open CC Switch import” again. Allow the browser to open the app when prompted.',
         copyConfig: 'Copy complete configuration'
       },
       codexModelCatalog: {
