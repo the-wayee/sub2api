@@ -34,7 +34,36 @@ if '/subscriptions/*' not in text:
         handle {
             reverse_proxy opentv-proxy-panel:80
         }''')
-    caddy.write_text(text)
+if '# opentv-subscription-login-help' not in text:
+    site='proxy.opentv.fans {'
+    if text.count(site)!=1: raise SystemExit('Proxy site not found or ambiguous')
+    text=text.replace(site, site+'''
+    # opentv-subscription-login-help
+    handle_errors {
+        @loginRequired expression {err.status_code} == 401
+        header @loginRequired Content-Type "text/html; charset=utf-8"
+        header @loginRequired Cache-Control "no-store"
+        respond @loginRequired `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>需要登录 · OpenTV Proxy</title><body style="font-family:system-ui;background:#f4f7fb;color:#172033;padding:60px 24px"><main style="max-width:560px;margin:auto;background:white;padding:32px;border-radius:16px"><h1>请先登录代理管理面板</h1><p>这个页面需要原代理面板的账号密码，用户名为 admin。</p><p>浏览器没有弹出登录窗口时，请打开无痕窗口，访问下面的地址，再输入原面板密码。</p><p><a href="https://proxy.opentv.fans/subscriptions/">https://proxy.opentv.fans/subscriptions/</a></p><p>Chrome 无痕窗口快捷键：Mac 按 ⌘ + Shift + N；Windows 按 Ctrl + Shift + N。</p></main></body></html>` 401
+    }
+''')
+caddy.write_text(text)
+sw=root/'panel-static/sw.js'
+if sw.exists() and 'opentv-subscriptions-network-only' not in sw.read_text():
+    worker=sw.read_text()
+    navigation='new n.NavigationRoute(n.createHandlerBoundToURL("./"))'
+    if navigation not in worker: raise SystemExit('Unexpected panel navigation worker; review before patching')
+    shutil.copy2(sw,backup/'sw.js')
+    worker=worker.replace(navigation,'new n.NavigationRoute(n.createHandlerBoundToURL("./"),{denylist:[/^\\/subscriptions(?:\\/|$)/]})')
+    bootstrap='''// opentv-subscriptions-network-only
+self.addEventListener("install",event=>event.waitUntil(self.skipWaiting()));
+self.addEventListener("activate",event=>event.waitUntil((async()=>{
+    await self.clients.claim();
+    for (const client of await self.clients.matchAll({type:"window"})) {
+        if (/^\\/subscriptions(?:\\/|$)/.test(new URL(client.url).pathname)) await client.navigate(client.url);
+    }
+})()));
+'''
+    sw.write_text(bootstrap+worker)
 html=index.read_text()
 if 'opentv-subscription-link' not in html:
     link='<a id="opentv-subscription-link" href="/subscriptions/" style="position:fixed;bottom:24px;right:24px;z-index:9999;background:#2563eb;color:white;padding:12px 18px;border-radius:12px;text-decoration:none;font:600 14px system-ui;box-shadow:0 4px 20px #0004">＋ 管理订阅</a>'
