@@ -54,7 +54,7 @@ describe('CC Switch Codex setup', () => {
     expect(config).not.toContain('/Users/')
 
     const download = wrapper.get('[data-testid="cc-switch-download"]')
-    expect(download.attributes('href')).toBe('https://github.com/farion1231/cc-switch/releases/latest')
+    expect(download.attributes('href')).toBe('https://ccswitch.io/zh/download')
     expect(download.attributes('target')).toBe('_blank')
     expect(download.attributes('rel')).toBe('noopener noreferrer')
     expect(wrapper.text()).toContain('keys.useKeyModal.ccSwitch.launchHelp')

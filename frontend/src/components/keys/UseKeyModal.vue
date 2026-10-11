@@ -50,7 +50,7 @@
           </div>
           <div class="mt-3 text-sm text-gray-600 dark:text-gray-400">
             <a
-              href="https://github.com/farion1231/cc-switch/releases/latest"
+              href="https://ccswitch.io/zh/download"
               target="_blank"
               rel="noopener noreferrer"
               class="font-medium text-primary-600 hover:underline dark:text-primary-400"
