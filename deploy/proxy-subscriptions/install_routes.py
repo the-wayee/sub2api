@@ -5,6 +5,8 @@ import shutil
 import time
 import pwd
 import os
+import hashlib
+import re
 
 root=Path('/home/ubuntu/mihomo-deploy')
 env=root/'subscription-manager.env'
@@ -69,4 +71,10 @@ if 'opentv-subscription-link' not in html:
     link='<a id="opentv-subscription-link" href="/subscriptions/" style="position:fixed;bottom:24px;right:24px;z-index:9999;background:#2563eb;color:white;padding:12px 18px;border-radius:12px;text-decoration:none;font:600 14px system-ui;box-shadow:0 4px 20px #0004">＋ 管理订阅</a>'
     if '</body>' not in html: raise SystemExit('Panel body not found')
     index.write_text(html.replace('</body>',link+'</body>'))
+if sw.exists():
+    # Updating the worker alone does not invalidate Workbox's cached panel HTML.
+    revision=hashlib.sha256(index.read_bytes()).hexdigest()
+    worker=sw.read_text()
+    worker=re.sub(r'(url:"\./",revision:")[^"]+("})',lambda match:match[1]+revision+match[2],worker)
+    sw.write_text(worker)
 print('Routes and panel entry installed. Backup:',backup)
