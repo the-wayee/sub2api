@@ -1,0 +1,18 @@
+[Unit]
+Description=OpenTV proxy subscription manager
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/mihomo-deploy/subscription-manager
+EnvironmentFile=/home/ubuntu/mihomo-deploy/subscription-manager.env
+ExecStart=/usr/bin/python3 /home/ubuntu/mihomo-deploy/subscription-manager/server.py
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

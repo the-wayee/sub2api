@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+subscription-manager.env
+subscription-backups/
