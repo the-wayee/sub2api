@@ -26,6 +26,23 @@ class SubscriptionTests(unittest.TestCase):
         self.assertEqual(removed['proxy-groups'][0]['use'],['subscription'])
     def test_last_subscription_cannot_be_deleted(self):
         with self.assertRaises(ValueError): server.edit_config(self.config,'delete',{'original':'subscription'})
+    def test_independent_groups_are_isolated_and_migration_is_idempotent(self):
+        self.config['listeners']=[{'name':'existing','type':'mixed','port':7891}]
+        added=server.edit_config(self.config,'save',{'name':'second','url':'https://example.com/new'})
+        first,group=server.independent_entry(added,'subscription')
+        second,other=server.independent_entry(added,'second')
+        self.assertEqual(first['port'],7892)
+        self.assertEqual(second['port'],7893)
+        self.assertEqual(group['use'],['subscription'])
+        self.assertEqual(other['use'],['second'])
+        self.assertEqual(server.separate_subscriptions(added),added)
+        renamed=server.edit_config(added,'save',{'original':'second','name':'renamed','url':''})
+        entry,group=server.independent_entry(renamed,'renamed')
+        self.assertEqual(entry['port'],7893)
+        self.assertEqual(entry['proxy'],group['name'])
+        deleted=server.edit_config(renamed,'delete',{'original':'renamed'})
+        self.assertFalse(any(x['port']==7893 for x in deleted['listeners']))
+        self.assertEqual(server.independent_entry(deleted,'subscription')[0]['port'],7892)
     def test_private_address_blocked(self):
         with patch.object(server.socket,'getaddrinfo',return_value=[(2,1,6,'',('127.0.0.1',443))]):
             with self.assertRaises(ValueError): server.validate_url('https://example.com/a')

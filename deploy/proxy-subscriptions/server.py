@@ -23,6 +23,43 @@ TOKEN = os.environ.get("SUBSCRIPTION_TOKEN", "")
 LOCK = threading.Lock()
 
 
+def independent_entry(config, provider):
+    groups = {g['name']: g for g in config.get('proxy-groups', [])}
+    for listener in config.get('listeners', []):
+        group = groups.get(listener.get('proxy'), {})
+        if listener.get('name', '').startswith('opentv-sub-') and group.get('use') == [provider]:
+            return listener, group
+    return None, None
+
+
+def separate_subscriptions(config):
+    result = copy.deepcopy(config)
+    groups = result.setdefault('proxy-groups', [])
+    listeners = result.setdefault('listeners', [])
+    occupied = set()
+    for key in ('port', 'socks-port', 'mixed-port', 'redir-port', 'tproxy-port'):
+        if result.get(key): occupied.add(int(result[key]))
+    for listener in listeners:
+        for part in str(listener.get('port', '')).split(','):
+            if not part: continue
+            limits = part.split('-')
+            occupied.update(range(int(limits[0]), int(limits[-1]) + 1))
+    for name, provider in result.get('proxy-providers', {}).items():
+        if provider.get('type') != 'http': continue
+        listener, group = independent_entry(result, name)
+        if listener: continue
+        group_name = '订阅 · ' + name
+        if any(g['name'] == group_name for g in groups):
+            raise ValueError('独立分组名称已被占用：' + group_name)
+        port = next((p for p in range(7891, 8000) if p not in occupied), None)
+        if port is None: raise ValueError('没有可用的独立代理端口')
+        occupied.add(port)
+        groups.append({'name': group_name, 'type': 'select', 'use': [name]})
+        listeners.append({'name': 'opentv-sub-' + secrets.token_hex(8), 'type': 'mixed',
+                          'listen': '0.0.0.0', 'port': port, 'udp': False, 'proxy': group_name})
+    return result
+
+
 def validate_url(url):
     if len(url) > 4096:
         raise ValueError("订阅链接过长")
@@ -47,6 +84,13 @@ def edit_config(config, action, body):
             raise ValueError("订阅已不存在，请刷新页面")
         if len(providers) <= 1:
             raise ValueError("请至少保留一个订阅，以免中断代理服务")
+        listener, group = independent_entry(result, original)
+        if listener:
+            result['listeners'].remove(listener)
+            result['proxy-groups'].remove(group)
+            for other in result['proxy-groups']:
+                if 'proxies' in other:
+                    other['proxies'] = [p for p in other['proxies'] if p != group['name']]
         del providers[original]
         for group in result.get("proxy-groups", []):
             group["use"] = [n for n in group.get("use", []) if n != original]
@@ -81,6 +125,17 @@ def edit_config(config, action, body):
         raise ValueError("此页面仅管理 HTTP 订阅")
     provider.update(url=url, interval=interval)
     if original and name != original:
+        listener, group = independent_entry(result, original)
+        if listener:
+            old_group = group['name']
+            new_group = '订阅 · ' + name
+            if any(g['name'] == new_group for g in result['proxy-groups']):
+                raise ValueError('独立分组名称已被占用')
+            group['name'] = new_group
+            listener['proxy'] = new_group
+            for other in result['proxy-groups']:
+                if 'proxies' in other:
+                    other['proxies'] = [new_group if p == old_group else p for p in other['proxies']]
         del providers[original]
         if "override" in provider and "additional-prefix" in provider["override"]:
             provider["override"]["additional-prefix"] = "[" + name + "] "
@@ -95,7 +150,7 @@ def edit_config(config, action, body):
                 group["use"].append(name)
     if not found:
         raise ValueError("未找到 AI-PROXY 分组")
-    return result
+    return separate_subscriptions(result)
 
 
 def core_request(config, path, method="GET", body=None):
@@ -185,9 +240,12 @@ class Handler(BaseHTTPRequestHandler):
                     if p.get("type") != "http":
                         continue
                     state = runtime.get(name, {})
+                    listener, group = independent_entry(config, name)
                     rows.append({"name": name, "host": urlsplit(p.get("url", "")).hostname,
                                  "interval": p.get("interval", 86400), "nodes": len(state.get("proxies", [])),
                                  "updated": state.get("updatedAt", ""),
+                                 "group": group['name'] if group else '',
+                                 "port": listener['port'] if listener else None,
                                  "active": any(name in g.get("use", []) for g in config.get("proxy-groups", []) if g.get("name") == "AI-PROXY")})
                 return self.respond(200, {"subscriptions": rows})
             except Exception:

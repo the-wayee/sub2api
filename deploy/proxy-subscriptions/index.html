@@ -2,7 +2,7 @@
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>订阅管理 · OpenTV Proxy</title><link rel="stylesheet" href="/subscriptions/style.css"><script src="/subscriptions/app.js" defer></script></head>
 <body><main>
 <header><a class="brand" href="/subscriptions/">◈ <span>OpenTV <small>PROXY</small></span></a><a class="back" href="/#/proxies">节点面板 ↗</a></header>
-<section class="intro"><div><span class="eyebrow">网络 / 订阅管理</span><h1>管理你的代理订阅</h1><p>添加订阅，自动接入 AI-PROXY。节点选择仍在原面板完成。</p></div><button id="add" class="primary">＋ 新增订阅</button></section>
+<section class="intro"><div><span class="eyebrow">网络 / 订阅管理</span><h1>管理你的代理订阅</h1><p>每个订阅拥有独立分组和端口，可给不同账号分别使用。</p></div><button id="add" class="primary">＋ 新增订阅</button></section>
 <div id="message" role="status" hidden></div>
 <section class="summary"><div><span id="count">—</span><small>个订阅</small></div><div><span id="nodes">—</span><small>个节点</small></div><p>保存前校验 · 自动备份 · 即时应用</p><button id="reload" class="quiet">刷新列表</button></section>
 <section id="list" aria-label="订阅列表"><p class="empty">正在读取订阅…</p></section>
@@ -12,6 +12,6 @@
 <label>订阅名称<input id="name" required maxlength="40" placeholder="例如：备用订阅" autocomplete="off"></label>
 <label>订阅链接<input id="url" type="url" placeholder="https://…" autocomplete="off" spellcheck="false"></label><p id="url-help" class="help">使用服务商提供的 Clash / Mihomo 订阅链接。</p>
 <label>自动更新周期<select id="interval"><option value="3600">每小时</option><option value="21600">每 6 小时</option><option value="86400" selected>每天</option><option value="604800">每周</option></select></label>
-<p class="notice">保存后会加入 AI-PROXY，自动加载配置。节点暂未出现时，可更新订阅后再查看节点面板。</p><p id="form-error" role="alert"></p><div class="actions"><button id="cancel" type="button" class="quiet">取消</button><button id="save" class="primary" type="submit">保存并应用</button></div></form></dialog>
+<p class="notice">保存后自动创建独立分组和端口，同时保留 AI-PROXY 的兼容入口。节点暂未出现时，可更新订阅后再查看节点面板。</p><p id="form-error" role="alert"></p><div class="actions"><button id="cancel" type="button" class="quiet">取消</button><button id="save" class="primary" type="submit">保存并应用</button></div></form></dialog>
 <dialog id="delete-dialog"><h2>删除订阅？</h2><p id="delete-text"></p><p class="help">该订阅的节点将从代理分组中移除。服务器会保留配置备份。</p><p id="delete-error" role="alert"></p><div class="actions"><button id="delete-cancel" class="quiet">取消</button><button id="delete-confirm" class="danger">确认删除</button></div></dialog>
 </body></html>

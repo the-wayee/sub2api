@@ -18,10 +18,14 @@ async function load() {
     $('list').replaceChildren();
     for (const row of subscriptions) {
       const card = node('article', 'card', ''); const head = node('div', 'card-head', '');
-      head.append(node('h2', '', row.name), node('span', 'pill', row.active ? '已接入 AI-PROXY' : '未接入分组'));
+      head.append(node('h2', '', row.name), node('span', 'pill', row.active ? '独立分组' : '未接入分组'));
       card.append(head, node('p', 'domain', row.host || '订阅地址已隐藏'));
       const meta = node('div', 'meta', ''); meta.append(node('span', '', `${row.nodes} 个节点`), node('span', '', `每 ${Math.round(row.interval / 3600)} 小时更新`)); card.append(meta);
       const date = new Date(row.updated); card.append(node('p', 'updated', row.updated && !isNaN(date) ? `最近更新：${date.toLocaleString('zh-CN')}` : '尚未获取节点，尝试更新订阅'));
+      if (row.port) {
+        const endpoint = node('p', 'notice', `分组：${row.group}\nSub2API：HTTP · 主机 mihomo · 端口 ${row.port} · 认证留空`);
+        endpoint.style.whiteSpace='pre-line'; card.append(endpoint);
+      }
       const actions = node('div', 'card-actions', '');
       const refresh = button('更新订阅', 'quiet', async () => { refresh.disabled = true; try { await api({action:'refresh',original:row.name}); message('订阅已更新'); await load(); } catch(e) { message(e.message,true); } finally { refresh.disabled=false; } });
       actions.append(refresh, button('编辑', 'quiet', () => openEditor(row)), button('删除', 'danger', () => { deleting=row.name; $('delete-text').textContent=`确认删除「${row.name}」？`; $('delete-error').textContent=''; $('delete-dialog').showModal(); }));
@@ -43,7 +47,7 @@ $('close').onclick=$('cancel').onclick=()=>{if(!pending) $('editor').close();};
 $('editor').addEventListener('cancel',e=>{if(pending)e.preventDefault();});
 $('form').onsubmit=async(e)=>{
   e.preventDefault(); if(pending)return; pending=true; $('save').disabled=true; $('save').textContent='正在校验并应用…';
-  try { await api({action:'save',original:editing,name:$('name').value,url:$('url').value,interval:Number($('interval').value)}); $('editor').close(); message('订阅已保存并应用。可前往节点面板切换节点。'); await load(); }
+  try { await api({action:'save',original:editing,name:$('name').value,url:$('url').value,interval:Number($('interval').value)}); $('editor').close(); message('订阅已保存，独立分组和端口已应用。可前往节点面板分别选择节点。'); await load(); }
   catch(e){$('form-error').textContent=e.message;} finally{pending=false;$('save').disabled=false;$('save').textContent='保存并应用';}
 };
 $('delete-cancel').onclick=()=>{if(!pending)$('delete-dialog').close();};
